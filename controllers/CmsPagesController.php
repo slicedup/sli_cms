@@ -8,13 +8,12 @@
 
 namespace sli_cms\controllers;
 
-class LeavesController extends \lithium\action\Controller {
-
-	public $scaffold = array();
+class CmsPagesController extends \lithium\action\Controller {
 
 	public function view() {
-		d($this->request->params['leaf']->title);
-		return $this->request->params['leaf']->title;
+		$page = $this->request->params['leaf']->load();
+		$this->set(compact('page'));
 	}
+
 }
 ?>

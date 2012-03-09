@@ -16,14 +16,12 @@ class Redirects extends Leaves {
 		'source' => 'cms_redirects'
 	);
 
-	public static function loadRoute($record, $request) {
-		$route = parent::loadRoute($record, $request);
-		$route['params'] = array();
-		$route['options'] = static::_redirect($record, $request);
-		return $route;
+	public static function loadRoute($record, $route, $request) {
+		$redirect = static::_redirect($record);
+		return array('options' => array('handler' => $redirect));
 	}
 
-	public static function _redirect($record, $request) {
+	public static function _redirect($record) {
 		$options = array('location' => '/', 'status' => 302, 'head' => true, 'exit' => false);
 		if ($redirect = $record->load()) {
 			$data = $redirect->data();

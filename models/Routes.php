@@ -8,6 +8,8 @@
 
 namespace sli_cms\models;
 
+use sli_filters\util\Behaviors;
+
 class Routes extends \lithium\data\Model{
 
 	public $belongsTo = array(
@@ -15,8 +17,23 @@ class Routes extends \lithium\data\Model{
 	);
 
 	protected $_meta = array(
-		'source' => 'cms_urls'
+		'source' => 'cms_routes'
 	);
+
+	public static function __init(){
+		parent::__init();
+		static::_applyFilters();
+	}
+
+	protected static function _applyFilters() {
+		Behaviors::apply(__CLASS__, array(
+			'Serialized' => array(
+				'fields' => array(
+					'params' => 'json'
+				)
+			)
+		));
+	}
 
 	/**
 	 * Get the branch record for a route
@@ -50,10 +67,10 @@ class Routes extends \lithium\data\Model{
 	public function url($record, array $options = array()) {
 		$options += array(
 			'full' => false,
-			'base' => '/',
+			'base' => null,
 			'secure' => false
 		);
 		extract($options);
-		return $base . $record->url;
+		return $base . '/' . $record->url;
 	}
 }

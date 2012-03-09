@@ -8,7 +8,7 @@
 
 namespace sli_cms\net\http;
 
-use sli_libs\core\LibraryRegistry;
+use sli_base\storage\Registry;
 
 class Router extends \lithium\net\http\Router {
 
@@ -29,7 +29,7 @@ class Router extends \lithium\net\http\Router {
 	 */
 	public static function parse($request) {
 		$route = static::$_classes['route'];
-		$configs = LibraryRegistry::get('sli_cms');
+		$configs = Registry::get('sli_cms');
 		foreach ($configs as $name => $config) {
 			$matched = $match = $config['routing']['match'];
 			if (is_string($match)) {
@@ -69,7 +69,12 @@ class Router extends \lithium\net\http\Router {
 		if ($match && $leaf = $match->leaf()) {
 			if ($class = $leaf->loadClass($request)) {
 				$route = static::$_classes['route'];
-				$config = $class::loadRoute($leaf, $request);
+				$template = $match->url(array(
+					'base' => $request->env('base')
+				));
+				$param = $options = array();
+
+				$config = $class::loadRoute($leaf, $match, $request);
 				extract($config);
 				if (is_callable($options)) {
 					$options = array('handler' => $options);

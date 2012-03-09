@@ -8,24 +8,88 @@
 
 namespace sli_cms\models;
 
-use lithium\core;
-
+use sli_scaffold\extensions\data\Model as Scaffold;
+use sli_cms\extensions\behavior\data\model\Inherited;
 use lithium\core\Libraries;
 use BadMethodCallException;
 
 class Leaves extends \lithium\data\Model{
 
-	public $hasMany = array(
-		'Branches'
-	);
-
-	public $hasOne = array(
-		'Branch'
-	);
+//	public $hasMany = array(
+//		'Branches'
+//	);
+//
+//	public $hasOne = array(
+//		'Branch'
+//	);
 
 	protected $_meta = array(
 		'source' => 'cms_leaves'
 	);
+
+	/**
+	 * Model inheritance settings
+	 *
+	 * @var array
+	 */
+	public $inheritance = array();
+
+	/**
+	 * Model Inherited behavior settings
+	 *
+	 * @see Leaves::_applyFilters()
+	 * @var array
+	 */
+	protected $_inheritance = array();
+
+	/**
+	 * Initialize model
+	 */
+	public static function __init(){
+		$class = get_called_class();
+		if ($class == __CLASS__) {
+			$self = $class::_object();
+			$self->hasMany[] = 'Branches';
+			$self->hasOne[] = 'Branch';
+		}
+		parent::__init();
+		static::_applyFilters();
+	}
+
+	/**
+	 * Apply filters to model
+	 */
+	protected static function _applyFilters() {
+		$class = get_called_class();
+		$self = $class::_object();
+
+		$inheritance = array(
+			'base' => __CLASS__
+		) + $self->inheritance;
+		$self->_inheritance = Inherited::apply($class, $inheritance);
+
+		$class::applyFilter('create', function($self, $params, $chain) {
+			if ($entity = $chain->next($self, $params, $chain)) {
+				$classPath = explode('\\', $self);
+				$entity->class = end($classPath);
+			}
+			return $entity;
+		});
+	}
+
+	public static function getScaffoldFields() {
+		$self = static::_object();
+		$class = get_class($self);
+		$schema = Inherited::schema($class, $self->_inheritance);
+		return array_keys($schema);
+	}
+
+	public static function getScaffoldFormFields() {
+		$self = static::_object();
+		$class = get_class($self);
+		$schema = Inherited::schema($class, $self->_inheritance);
+		return Scaffold::mapSchemaFields($class, null, $schema);
+	}
 
 	/**
 	 * Load the leave's handler class and prepare the route
@@ -33,11 +97,8 @@ class Leaves extends \lithium\data\Model{
 	 * @param Record $record
 	 */
 	public static function loadClass($record) {
-		if (!isset($record->class)) {
-			$record->class = __CLASS__;
-		}
 		$class = $record->class;
-		if (!class_exists($class)) {
+		if (strpos($class, '\\') === false || !class_exists($class)) {
 			$class = Libraries::locate('models', $class);
 		}
 		return $class;
@@ -49,17 +110,21 @@ class Leaves extends \lithium\data\Model{
 	 * @param Record $record
 	 * @param Request $request
 	 */
-	public static function loadRoute($record, $request) {
-		$config = array(
-			'template' => '/' . $request->url,
-			'params' => array(
-				'controller' => 'leaves',
-				'action' => 'view',
-				'leaf' => $record
-			),
-			'options' => array()
+	public static function loadRoute($record, $route, $request) {
+		$params = array(
+			'leaf' => $record
 		);
-		return $config;
+		if (is_array($route->params)) {
+			$params += $route->params;
+		}
+		$params += array(
+			'action' => 'view'
+		);
+		if (!isset($params['controller'])) {
+			$controller = static::controller();
+			$params += compact('controller');
+		}
+		return compact('params');
 	}
 
 	/**
@@ -72,11 +137,32 @@ class Leaves extends \lithium\data\Model{
 		if ($class != get_called_class()) {
 			return $class::load($record);
 		}
-
 		if ($record->model() != $class) {
-			return $class::first($record->id);
+			$loaded = $class::first($record->id);
+			if ($loaded && $record->model() == __CLASS__) {
+//				$loaded->leaf = $record;
+			}
+			return $loaded;
 		}
 		return $record;
+	}
+
+	/**
+	 * Obtain the default controller for a leaf
+	 */
+	public static function controller() {
+		$class = get_called_class();
+		if ($class !== __CLASS__) {
+			do {
+				$classPath = explode('\\', $class);
+				$name = end($classPath);
+				if ($controller = Libraries::locate('controllers', $name)) {
+					return $controller;
+				}
+				$class = get_parent_class($class);
+			} while ($class !== __CLASS__);
+		}
+		return 'leaves';
 	}
 
 	/**
@@ -86,7 +172,8 @@ class Leaves extends \lithium\data\Model{
 	 * @param Record $branch
 	 */
 	public static function branch($record, $branch = null){
-		$relationship = static::relations('Branch')->data();
+		$self = __CLASS__;
+		$relationship = $self::relations('Branch')->data();
 		extract($relationship);
 		if (is_object($branch) && $branch->model() == $to) {
 			$record->{$fieldName} = $branch;

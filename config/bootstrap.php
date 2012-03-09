@@ -6,15 +6,14 @@
  * @license 	http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
-use sli_libs\core\LibraryRegistry;
+use sli_base\storage\Registry;
 use lithium\action\Dispatcher;
 
-LibraryRegistry::init('sli_cms');
-
-LibraryRegistry::add('sli_cms', 'default', array(
+Registry::set('sli_cms.default', array(
 	'routing' => array(
 		'match' => '.*'
-	)
+	),
+	'connection' => 'default'
 ));
 
 Dispatcher::config(array(

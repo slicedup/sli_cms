@@ -82,13 +82,13 @@ class Branches extends \lithium\data\Model{
 		return $record->{$fieldName};
 	}
 
-	public static function root($record) {}
-
 	public static function parent($record, $filter = null) {}
 
-	public static function parents($record, $filter = null) {}
+	public static function ancestors($record, $filter = null) {}
 
 	public static function children($record, $filter = null) {}
+
+	public static function descendants($record, $filter = null) {}
 
 	public static function siblings($record, $filter = null) {}
 }

@@ -8,7 +8,7 @@
 
 namespace sli_cms\tests\mocks\models;
 
-class Branches extends \sli_filters\tests\mocks\models\MockModel {
+class Branches extends \sli_base\tests\mocks\models\MockModel {
 
 	protected $_meta = array(
 		'source' => 'mock-source'

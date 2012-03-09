@@ -10,7 +10,7 @@ namespace sli_cms\extensions\behavior\data\model;
 
 use lithium\data\model\Query;
 
-class Tree extends \sli_filters\data\model\Behavior {
+class Tree extends \sli_base\data\model\Behavior {
 
 	protected static $_settings = array(
 		'parent' => 'parent_id',

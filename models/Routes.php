@@ -8,7 +8,7 @@
 
 namespace sli_cms\models;
 
-use sli_filters\util\Behaviors;
+use sli_base\util\Behaviors;
 
 class Routes extends \lithium\data\Model{
 

@@ -9,7 +9,7 @@
 namespace sli_cms\models;
 
 use sli_scaffold\extensions\data\Model as Scaffold;
-use sli_cms\extensions\behavior\data\model\Inherited;
+use sli_base\data\model\behavior\Inherited;
 use lithium\core\Libraries;
 use BadMethodCallException;
 
